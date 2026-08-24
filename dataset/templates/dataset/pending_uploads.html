@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head><title>Pending Approvals</title></head>
+<body>
+  <h1>Pending Dataset Approvals</h1>
+
+  {% if uploads %}
+  <table border="1" cellpadding="8">
+    <tr>
+      <th>Upload #</th>
+      <th>Uploaded By</th>
+      <th>Uploaded At</th>
+      <th>Status</th>
+      <th>Rows</th>
+      <th>Action</th>
+    </tr>
+    {% for upload in uploads %}
+    <tr>
+      <td>{{ upload.pk }}</td>
+      <td>{{ upload.uploaded_by }}</td>
+      <td>{{ upload.uploaded_at }}</td>
+      <td>{{ upload.status }}</td>
+      <td>{{ upload.total_rows }} ({{ upload.clean_rows }} clean / {{ upload.flagged_rows }} flagged)</td>
+      <td><a href="{% url 'dataset:review_upload' upload.approval_token %}">Review</a></td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p>No pending uploads.</p>
+  {% endif %}
+
+  <p><a href="{% url 'dataset:upload_csv' %}">Upload a new dataset</a></p>
+</body>
+</html>

@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head><title>Upload Dataset</title></head>
+<body>
+  <h1>Upload Dataset CSV</h1>
+
+  {% if messages %}
+    {% for message in messages %}
+      <p style="color: green;">{{ message }}</p>
+    {% endfor %}
+  {% endif %}
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Upload</button>
+  </form>
+</body>
+</html>

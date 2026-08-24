@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head><title>Review Upload #{{ upload.pk }}</title></head>
+<body>
+  <h1>Review Upload #{{ upload.pk }}</h1>
+  <p>Uploaded by: {{ upload.uploaded_by }}</p>
+  <p>Total rows: {{ upload.total_rows }} — Clean: {{ upload.clean_rows }} — Flagged: {{ upload.flagged_rows }}</p>
+
+  <form method="post" action="{% url 'dataset:approve_upload' upload.approval_token %}">
+    {% csrf_token %}
+
+    <h2>Clean rows ({{ clean_records.count }})</h2>
+    <p>These will be automatically approved.</p>
+
+    <h2>Flagged rows ({{ flagged_records.count }})</h2>
+    <table border="1" cellpadding="5">
+      <tr>
+        <th>Approve?</th>
+        <th>Row ID</th>
+        <th>Reason flagged</th>
+      </tr>
+      {% for record in flagged_records %}
+      <tr>
+        <td><input type="checkbox" name="approve_flagged" value="{{ record.id }}"></td>
+        <td>{{ record.id }}</td>
+        <td>{{ record.flag_reason }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+
+    <br>
+    <button type="submit">Approve Selected + All Clean Rows</button>
+  </form>
+
+  <form method="post" action="{% url 'dataset:reject_upload' upload.approval_token %}">
+    {% csrf_token %}
+    <button type="submit">Reject Entire Upload</button>
+  </form>
+</body>
+</html>

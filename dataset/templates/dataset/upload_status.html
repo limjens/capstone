@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html>
+<head><title>Upload Status</title></head>
+<body>
+  <h1>Upload #{{ upload.pk }}</h1>
+  <p>Status: {{ upload.status }}</p>
+  <p>Total rows: {{ upload.total_rows }}</p>
+  <p>Clean rows: {{ upload.clean_rows }}</p>
+  <p>Flagged rows: {{ upload.flagged_rows }}</p>
+</body>
+</html>
