@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{% block title %}Enrollment Predictor{% endblock %}</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #f4f5f7;
+      color: #222;
+    }
+    nav {
+      background: #1a3d1a;
+      padding: 15px 30px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    nav a {
+      color: white;
+      text-decoration: none;
+      font-size: 0.95em;
+    }
+    nav a:hover { text-decoration: underline; }
+    nav .brand { font-weight: bold; font-size: 1.1em; margin-right: auto; }
+    main {
+      max-width: 900px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+    .card {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 25px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .headline { font-size: 2.2em; font-weight: bold; color: #1a7a1a; }
+    .explain {
+      background: #f0f0f0;
+      border-left: 4px solid #888;
+      padding: 10px 15px;
+      margin-top: 10px;
+      font-size: 0.9em;
+    }
+    table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background: #eee; }
+    form p { margin-bottom: 12px; }
+    button, input[type=submit] {
+      background: #1a7a1a;
+      color: white;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.95em;
+    }
+    button:hover { background: #145c14; }
+    .messages { list-style: none; padding: 0; }
+    .messages li {
+      background: #e6f4e6;
+      border: 1px solid #a3d3a3;
+      padding: 10px 15px;
+      border-radius: 5px;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <span class="brand">SLSU San Juan Enrollment Predictor</span>
+    <a href="{% url 'predictions:public_test' %}">Try the Prediction Test</a>
+    {% if user.is_authenticated %}
+      <a href="{% url 'dashboard:overview' %}">Dashboard</a>
+      <a href="{% url 'dataset:pending_uploads' %}">Pending Approvals</a>
+      <a href="{% url 'dataset:upload_csv' %}">Upload Dataset</a>
+      <a href="{% url 'accounts:logout' %}">Logout ({{ user.username }})</a>
+    {% else %}
+      <a href="{% url 'accounts:login' %}">Admin Login</a>
+    {% endif %}
+  </nav>
+
+  <main>
+    {% if messages %}
+      <ul class="messages">
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>
