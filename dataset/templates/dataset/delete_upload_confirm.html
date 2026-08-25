@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Upload #{{ upload.pk }}{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <div class="card">
+
+        <h1>Delete Upload #{{ upload.pk }}?</h1>
+
+        <p>
+            Uploaded by:
+            <strong>{{ upload.uploaded_by }}</strong>
+        </p>
+
+        <p>
+            Status:
+            <strong>{{ upload.status }}</strong>
+        </p>
+
+        <p>
+            Total rows:
+            <strong>{{ upload.total_rows }}</strong>
+            ({{ upload.records.count }} still in the database as pending records)
+        </p>
+
+        <p class="error-message">
+            <strong>This cannot be undone.</strong>
+            All pending records tied to this upload will also be deleted.
+            Records already promoted to EnrollmentRecord are NOT affected.
+        </p>
+
+
+        <form method="post">
+
+            {% csrf_token %}
+
+            <button type="submit" class="danger-button">
+                Yes, Delete This Upload
+            </button>
+
+        </form>
+
+        <p>
+            <a href="{% url 'dataset:pending_uploads' %}">
+                Cancel, go back
+            </a>
+        </p>
+
+    </div>
+
+</div>
+
+{% endblock %}

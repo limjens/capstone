@@ -10,4 +10,5 @@ urlpatterns = [
     path("review/<uuid:token>/approve/", views.approve_upload, name="approve_upload"),
     path("review/<uuid:token>/reject/", views.reject_upload, name="reject_upload"),
     path("pending/", views.pending_uploads, name="pending_uploads"),
+    path("upload/<int:pk>/delete/", views.delete_upload, name="delete_upload"),
 ]

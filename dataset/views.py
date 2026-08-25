@@ -10,7 +10,7 @@ from django.views.decorators.http import require_POST
 
 from .forms import DatasetUploadForm
 from .models import DatasetUpload, PendingRecord, EnrollmentRecord
-from .validation import parse_and_validate_csv
+from .validation import parse_and_validate_csv, validate_csv_headers
 
 
 @login_required
@@ -19,9 +19,20 @@ def upload_csv(request):
     if request.method == "POST":
         form = DatasetUploadForm(request.POST, request.FILES)
         if form.is_valid():
+            uploaded_file = form.cleaned_data["file"]
+
+            is_valid, missing, extra = validate_csv_headers(uploaded_file)
+            if not is_valid:
+                messages.error(
+                    request,
+                    f"This CSV doesn't match the expected survey format. "
+                    f"Missing required columns: {', '.join(sorted(missing))}",
+                )
+                return render(request, "dataset/upload_csv.html", {"form": form})
+
             upload = DatasetUpload.objects.create(
                 uploaded_by=request.user,
-                file=form.cleaned_data["file"],
+                file=uploaded_file,
                 status="processing",
             )
 
@@ -202,3 +213,20 @@ def pending_uploads(request):
         .order_by("-uploaded_at")
     )
     return render(request, "dataset/pending_uploads.html", {"uploads": uploads})
+
+
+@login_required
+@permission_required("dataset.delete_datasetupload", raise_exception=True)
+def delete_upload(request, pk):
+    upload = get_object_or_404(DatasetUpload, pk=pk)
+
+    if request.method == "POST":
+        record_count = upload.records.count()
+        upload.delete()  # CASCADE deletes all its PendingRecords automatically
+        messages.success(
+            request,
+            f"Upload #{pk} and its {record_count} pending records were deleted.",
+        )
+        return redirect("dataset:pending_uploads")
+
+    return render(request, "dataset/delete_upload_confirm.html", {"upload": upload})

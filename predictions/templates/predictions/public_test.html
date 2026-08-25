@@ -1,23 +1,63 @@
-<!DOCTYPE html>
-<html>
-<head><title>Will I Enroll at SLSU San Juan?</title></head>
-<body>
-  <h1>Enrollment Likelihood Test</h1>
-  <p>Answer the questions below to see your predicted likelihood of enrolling at SLSU San Juan.</p>
+{% extends 'base.html' %}
 
-  {% if result %}
-  <div style="border: 2px solid green; padding: 15px; margin-bottom: 20px;">
-    <h2>Your Result</h2>
-    <p>Chance you pursue college: <strong>{{ result.p_pursue }}%</strong></p>
-    <p>Chance you choose SLSU San Juan (if pursuing): <strong>{{ result.p_sanjuan_given_pursue }}%</strong></p>
-    <p>Overall chance you enroll at SLSU San Juan: <strong>{{ result.p_enroll_sanjuan }}%</strong></p>
-  </div>
-  {% endif %}
+{% block title %}Will I Enroll at SLSU San Juan?{% endblock %}
 
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Get My Prediction</button>
-  </form>
-</body>
-</html>
+{% block content %}
+
+<div class="container">
+
+    <div class="card">
+
+        <h1>Enrollment Likelihood Test</h1>
+
+        <p>
+            Answer the questions below to see your predicted likelihood
+            of enrolling at SLSU San Juan.
+        </p>
+
+    </div>
+
+
+    {% if result %}
+    <div class="card">
+
+        <h2>Your Result</h2>
+
+        <p>
+            Chance you pursue college:
+            <strong>{{ result.p_pursue }}%</strong>
+        </p>
+
+        <p>
+            Chance you choose SLSU San Juan (if pursuing):
+            <strong>{{ result.p_sanjuan_given_pursue }}%</strong>
+        </p>
+
+        <p>
+            Overall chance you enroll at SLSU San Juan:
+            <strong>{{ result.p_enroll_sanjuan }}%</strong>
+        </p>
+
+    </div>
+    {% endif %}
+
+
+    <div class="card">
+
+        <form method="post">
+
+            {% csrf_token %}
+
+            {{ form.as_p }}
+
+            <button type="submit">
+                Get My Prediction
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}

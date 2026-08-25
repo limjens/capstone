@@ -1,3 +1,10 @@
+
+{% extends 'base.html' %}
+
+{% block title %}Review Upload #{{ upload.pk }}{% endblock %}
+
+{% block content %}
+
 <div class="container">
 
     <div class="card">
@@ -36,7 +43,6 @@
                 These will be automatically approved.
             </p>
 
-
             <h2>
                 Flagged rows ({{ flagged_records.count }})
             </h2>
@@ -53,9 +59,7 @@
                     </thead>
 
                     <tbody>
-
                         {% for record in flagged_records %}
-
                         <tr>
                             <td>
                                 <input
@@ -65,17 +69,11 @@
                                 >
                             </td>
 
-                            <td>
-                                {{ record.id }}
-                            </td>
+                            <td>{{ record.id }}</td>
 
-                            <td>
-                                {{ record.flag_reason }}
-                            </td>
+                            <td>{{ record.flag_reason }}</td>
                         </tr>
-
                         {% endfor %}
-
                     </tbody>
                 </table>
 
@@ -84,7 +82,6 @@
                 <p>No flagged rows found.</p>
 
             {% endif %}
-
 
             <br>
 
@@ -115,3 +112,4 @@
 
 </div>
 
+{% endblock %}

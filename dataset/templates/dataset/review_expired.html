@@ -1,14 +1,24 @@
 
+{% extends 'base.html' %}
+
+{% block title %}Link Expired{% endblock %}
+
+{% block content %}
+
 <div class="container">
 
     <div class="card">
+
         <h1>This review link has expired or was already used</h1>
 
         <p>
             Upload #{{ upload.pk }} is currently:
             <strong>{{ upload.status }}</strong>
         </p>
+
     </div>
 
 </div>
+
+{% endblock %}
 

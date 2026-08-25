@@ -25,6 +25,7 @@ VALID_CODES = {
     "enroll_if_course_unavailable": {0, 1},
     "switch_if_slots_full": {0, 1},
 }
+
 for col in [
     "discourage_distance",
     "discourage_tuition",
@@ -37,6 +38,25 @@ for col in [
     "discourage_relocation",
 ]:
     VALID_CODES[col] = {1, 2, 3, 4, 5}
+
+    REQUIRED_COLUMNS = set(VALID_CODES.keys())
+
+
+def validate_csv_headers(uploaded_file):
+    """
+    Checks the CSV's header row against the expected survey columns
+    BEFORE processing any rows. Returns (is_valid, missing_columns, extra_columns).
+    """
+    uploaded_file.seek(0)
+    decoded = uploaded_file.read().decode("utf-8-sig")
+    reader = csv.DictReader(io.StringIO(decoded))
+    actual_columns = set(reader.fieldnames or [])
+
+    missing = REQUIRED_COLUMNS - actual_columns
+    extra = actual_columns - REQUIRED_COLUMNS
+
+    uploaded_file.seek(0)  # reset so it can be read again later
+    return (len(missing) == 0, missing, extra)
 
 
 def parse_and_validate_csv(uploaded_file):
