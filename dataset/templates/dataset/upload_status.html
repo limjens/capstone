@@ -1,11 +1,38 @@
-<!DOCTYPE html>
-<html>
-<head><title>Upload Status</title></head>
-<body>
-  <h1>Upload #{{ upload.pk }}</h1>
-  <p>Status: {{ upload.status }}</p>
-  <p>Total rows: {{ upload.total_rows }}</p>
-  <p>Clean rows: {{ upload.clean_rows }}</p>
-  <p>Flagged rows: {{ upload.flagged_rows }}</p>
-</body>
-</html>
+
+{% extends 'base.html' %}
+
+{% block title %}Upload Status{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <div class="card">
+
+        <h1>Upload #{{ upload.pk }}</h1>
+
+        <p>
+            Status:
+            <strong>{{ upload.status }}</strong>
+        </p>
+
+        <p>
+            Total rows:
+            <strong>{{ upload.total_rows }}</strong>
+        </p>
+
+        <p>
+            Clean rows:
+            <strong>{{ upload.clean_rows }}</strong>
+        </p>
+
+        <p>
+            Flagged rows:
+            <strong>{{ upload.flagged_rows }}</strong>
+        </p>
+
+    </div>
+
+</div>
+
+{% endblock %}
