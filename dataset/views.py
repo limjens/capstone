@@ -215,18 +215,32 @@ def pending_uploads(request):
     return render(request, "dataset/pending_uploads.html", {"uploads": uploads})
 
 
+from django.contrib.auth import authenticate
+
+
 @login_required
 @permission_required("dataset.delete_datasetupload", raise_exception=True)
 def delete_upload(request, pk):
     upload = get_object_or_404(DatasetUpload, pk=pk)
+    error = None
 
     if request.method == "POST":
-        record_count = upload.records.count()
-        upload.delete()  # CASCADE deletes all its PendingRecords automatically
-        messages.success(
-            request,
-            f"Upload #{pk} and its {record_count} pending records were deleted.",
-        )
-        return redirect("dataset:pending_uploads")
+        password = request.POST.get("password", "")
+        user = authenticate(request, username=request.user.username, password=password)
 
-    return render(request, "dataset/delete_upload_confirm.html", {"upload": upload})
+        if user is None:
+            error = "Incorrect password. Deletion cancelled."
+        else:
+            record_count = upload.records.count()
+            upload.delete()
+            messages.success(
+                request,
+                f"Upload #{pk} and its {record_count} pending records were deleted.",
+            )
+            return redirect("dataset:pending_uploads")
+
+    return render(
+        request,
+        "dataset/delete_upload_confirm.html",
+        {"upload": upload, "error": error},
+    )

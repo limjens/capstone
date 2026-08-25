@@ -154,6 +154,38 @@ def overview(request):
     program_rows.sort(key=lambda r: -r["expected_students"])
     top_program = program_rows[0]["program"] if program_rows else "N/A"
 
+    # --- Overall program-allocation accuracy: does the TOTAL predicted mix
+    # across all programs match reality, even though guessing any ONE
+    # student's exact program is harder? ---
+    overall_program_accuracies = []
+    for seed in range(10):
+        _, test_batch = train_test_split(
+            batch, test_size=0.2, random_state=seed, stratify=batch["pursue_college"]
+        )
+        p_pursue_t = model_a.predict_proba(test_batch[features_a])[:, class_idx_a]
+        proba_c2_t = model_c2.predict_proba(test_batch[features_c2])
+
+        total_abs_error = 0.0
+        total_actual = 0
+        for i, cls in enumerate(model_c2.classes_):
+            expected_t = (p_pursue_t * proba_c2_t[:, i]).sum()
+            actual_t = (
+                (test_batch["pursue_college"] == 1)
+                & (test_batch["intended_degree_program"] == cls)
+            ).sum()
+            total_abs_error += abs(expected_t - actual_t)
+            total_actual += actual_t
+
+        if total_actual > 0:
+            error_pct = (total_abs_error / total_actual) * 100
+            overall_program_accuracies.append(max(0.0, 100 - error_pct))
+
+    overall_program_accuracy = (
+        round(sum(overall_program_accuracies) / len(overall_program_accuracies), 1)
+        if overall_program_accuracies
+        else None
+    )
+
     # --- Student support priorities ---
     avg_scores = batch[DISCOURAGE_COLS].mean().sort_values(ascending=False)
     support_rows = [
@@ -188,5 +220,6 @@ def overview(request):
             "algo_c2": algo_c2,
             "acc_c2": acc_c2,
             "f1_c2": f1_c2,
+            "overall_program_accuracy": overall_program_accuracy,
         },
     )

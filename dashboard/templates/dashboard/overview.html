@@ -80,6 +80,7 @@
             Most in-demand program:
             <strong>{{ top_program }}</strong>
         </p>
+         <p>Overall program-allocation accuracy: <strong>{{ overall_program_accuracy }}%</strong></p>
 
         <table>
             <thead>
@@ -121,7 +122,17 @@
             count by
             {{ STUDENTS_PER_SECTION|default:"40" }}
             students per section.
-        </div>
+            
+                This overall accuracy figure measures whether the TOTAL predicted mix of students across
+      all programs matches what actually happened, tested on held-out data the models never
+      trained on -- it is a different (and higher) number than each model's raw individual
+      classification accuracy (~50% for specific degree program), because it asks a different
+      question. Predicting the total distribution across many students is a smoother, more
+      forgiving task than predicting any one student's exact choice: a student mispredicted as
+      choosing BSED instead of BIT still contributes correctly to the "roughly N students will
+      choose something technical" pattern in the aggregate. This is analogous to how weather
+      forecasters can accurately predict "30% chance of rain this month" even though they can't
+      say which specific day it will rain.</div>
     </div>
 
 
