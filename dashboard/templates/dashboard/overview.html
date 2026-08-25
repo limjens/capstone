@@ -1,116 +1,229 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Enrollment Prediction Dashboard</title>
-  <style>
-    body { font-family: Arial, sans-serif; max-width: 900px; margin: 30px auto; line-height: 1.5; }
-    .card { border: 1px solid #ccc; border-radius: 8px; padding: 20px; margin-bottom: 25px; }
-    .headline { font-size: 2.2em; font-weight: bold; color: #1a7a1a; }
-    .explain { background: #f5f5f5; border-left: 4px solid #888; padding: 10px 15px; margin-top: 10px; font-size: 0.95em; }
-    table { border-collapse: collapse; width: 100%; margin-top: 10px; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-    th { background: #eee; }
-  </style>
-</head>
-<body>
-  <h1>SLSU San Juan Enrollment Prediction Dashboard</h1>
-  <p>Based on <strong>{{ batch_size }}</strong> verified survey responses currently in the system.</p>
 
-  <div class="card">
-    <h2>Expected Headcount for SLSU San Juan</h2>
-    <p class="headline">{{ expected_headcount }} students</p>
-    <p>Hard-classification count (sanity check): {{ hard_count }} students</p>
-    <p>Overall college-pursuit rate among respondents: {{ pursue_rate }}%</p>
-    <div class="explain">
-      <strong>What this means:</strong> For every student, the system multiplies their individual
-      chance of pursuing college by their chance of choosing SLSU San Juan specifically, then adds
-      those probabilities across all {{ batch_size }} students. This "expected value" approach is
-      more statistically reliable than simply counting students predicted as a hard yes/no, because
-      it accounts for uncertainty in borderline cases rather than forcing everyone into one category.
+{% extends 'base.html' %}
+
+{% block title %}Enrollment Prediction Dashboard{% endblock %}
+
+{% block content %}
+
+<div class="container">
+    <h1>SLSU San Juan Enrollment Prediction Dashboard</h1>
+
+    <p>
+        Based on <strong>{{ batch_size }}</strong>
+        verified survey responses currently in the system.
+    </p>
+
+
+    <!-- Expected Headcount -->
+    <div class="card">
+        <h2>Expected Headcount for SLSU San Juan</h2>
+
+        <p class="headline">
+            {{ expected_headcount }} students
+        </p>
+
+        <p>
+            Hard-classification count (sanity check):
+            {{ hard_count }} students
+        </p>
+
+        <p>
+            Overall college-pursuit rate among respondents:
+            {{ pursue_rate }}%
+        </p>
+
+        <div class="explain">
+            <strong>What this means:</strong>
+            For every student, the system multiplies their individual
+            chance of pursuing college by their chance of choosing
+            SLSU San Juan specifically, then adds those probabilities
+            across all {{ batch_size }} students. This "expected value"
+            approach is more statistically reliable than simply counting
+            students predicted as a hard yes/no, because it accounts for
+            uncertainty in borderline cases rather than forcing everyone
+            into one category.
+        </div>
     </div>
-  </div>
 
-  <div class="card">
-    <h2>Prediction Accuracy</h2>
-    <p class="headline">{{ mean_accuracy }}%</p>
-    <p>Range across 10 tests: {{ min_accuracy }}% - {{ max_accuracy }}%</p>
-    <div class="explain">
-      <strong>What this means:</strong> This accuracy rate was measured honestly -- the models were
-      tested against real survey responses they were NOT trained on (a "held-out" set), repeated 10
-      times with different random splits to avoid relying on a single lucky result. It measures how
-      close the predicted headcount lands to the actual observed headcount in each test, not whether
-      every individual student's prediction was correct. Individual-level accuracy is naturally lower
-      (see model details below) since predicting one specific person's decision is harder than
-      predicting an aggregate trend across many people -- small errors in each direction tend to
-      cancel out when summed, which is why the aggregate headcount accuracy is high even though no
-      single prediction is guaranteed correct.
+
+    <!-- Prediction Accuracy -->
+    <div class="card">
+        <h2>Prediction Accuracy</h2>
+
+        <p class="headline">
+            {{ mean_accuracy }}%
+        </p>
+
+        <p>
+            Range across 10 tests:
+            {{ min_accuracy }}% - {{ max_accuracy }}%
+        </p>
+
+        <div class="explain">
+            <strong>What this means:</strong>
+            This accuracy rate was measured honestly -- the models were
+            tested against real survey responses they were NOT trained on
+            (a "held-out" set), repeated 10 times with different random
+            splits to avoid relying on a single lucky result. It measures
+            how close the predicted headcount lands to the actual observed
+            headcount in each test, not whether every individual student's
+            prediction was correct.
+        </div>
     </div>
-  </div>
 
-  <div class="card">
-    <h2>Expected Students per Degree Program</h2>
-    <p>Most in-demand program: <strong>{{ top_program }}</strong></p>
-    <table>
-      <tr><th>Program</th><th>Expected Students</th><th>Estimated Sections Needed</th><th>Accuracy</th></tr>
-      {% for row in program_rows %}
-      <tr>
-        <td>{{ row.program }}</td>
-        <td>{{ row.expected_students }}</td>
-        <td>{{ row.sections_needed }}</td>
-        <td>{% if row.accuracy %}{{ row.accuracy }}%{% else %}N/A{% endif %}</td>
-      </tr>
-      {% endfor %}
-    </table>
-    <div class="explain">
-      <strong>What this means:</strong> This breaks the expected headcount down by which specific
-      degree program each student is most likely to choose (their real committed decision, not just
-      a general interest area). "Estimated sections needed" divides the expected student count by
-      {{ STUDENTS_PER_SECTION|default:"40" }} students per section, as a rough starting point for
-      classroom and faculty planning -- adjust that assumption to match your institution's actual
-      class-size policy. A large "Undecided" count reflects a genuine pattern in the survey data:
-      many prospective students haven't committed to a specific program yet, which is useful
-      information for student advising services rather than a weakness in the prediction itself.
+
+    <!-- Degree Programs -->
+    <div class="card">
+        <h2>Expected Students per Degree Program</h2>
+
+        <p>
+            Most in-demand program:
+            <strong>{{ top_program }}</strong>
+        </p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Program</th>
+                    <th>Expected Students</th>
+                    <th>Estimated Sections Needed</th>
+                    <th>Accuracy</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for row in program_rows %}
+                <tr>
+                    <td>{{ row.program }}</td>
+                    <td>{{ row.expected_students }}</td>
+                    <td>{{ row.sections_needed }}</td>
+                    <td>
+                        {% if row.accuracy %}
+                            {{ row.accuracy }}%
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4">No program prediction data available.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="explain">
+            <strong>What this means:</strong>
+            This breaks the expected headcount down by which specific
+            degree program each student is most likely to choose.
+            "Estimated sections needed" divides the expected student
+            count by
+            {{ STUDENTS_PER_SECTION|default:"40" }}
+            students per section.
+        </div>
     </div>
-  </div>
 
-  <div class="card">
-    <h2>Student Support Priorities</h2>
-    <p>Biggest concern overall: <strong>{{ top_barrier }}</strong></p>
-    <p>Average barrier severity across all factors: {{ overall_barrier_avg }} / 5</p>
-    <table>
-      <tr><th>Barrier</th><th>Avg. Severity (1-5)</th></tr>
-      {% for row in support_rows %}
-      <tr>
-        <td>{{ row.barrier }}</td>
-        <td>{{ row.avg_severity }}</td>
-      </tr>
-      {% endfor %}
-    </table>
-    <div class="explain">
-      <strong>What this means:</strong> Each respondent rated how much each factor discourages them
-      from enrolling, on a scale of 1 (not at all) to 5 (very strongly). This table ranks those
-      factors by their average severity across all respondents, highest first -- it tells
-      administrators where to focus support services (scholarships, facility upgrades, program
-      offerings, etc.) to reduce the biggest real barriers to enrollment.
+
+    <!-- Student Support -->
+    <div class="card">
+        <h2>Student Support Priorities</h2>
+
+        <p>
+            Biggest concern overall:
+            <strong>{{ top_barrier }}</strong>
+        </p>
+
+        <p>
+            Average barrier severity across all factors:
+            {{ overall_barrier_avg }} / 5
+        </p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Barrier</th>
+                    <th>Avg. Severity (1-5)</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for row in support_rows %}
+                <tr>
+                    <td>{{ row.barrier }}</td>
+                    <td>{{ row.avg_severity }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="2">
+                        No support priority data available.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="explain">
+            <strong>What this means:</strong>
+            Each respondent rated how much each factor discourages them
+            from enrolling, on a scale of 1 (not at all) to 5
+            (very strongly). The table ranks these factors by their
+            average severity.
+        </div>
     </div>
-  </div>
 
-  <div class="card">
-    <h2>Model Details</h2>
-    <table>
-      <tr><th>Model</th><th>Predicts</th><th>Best Algorithm</th><th>Test Accuracy</th><th>F1 Score</th></tr>
-      <tr><td>Model A</td><td>Will pursue college (yes/no)</td><td>{{ algo_a }}</td><td>{{ acc_a }}</td><td>{{ f1_a }}</td></tr>
-      <tr><td>Model B</td><td>Which campus (SLSU San Juan vs. others)</td><td>{{ algo_b }}</td><td>{{ acc_b }}</td><td>{{ f1_b }}</td></tr>
-      <tr><td>Model C2</td><td>Specific intended degree program</td><td>{{ algo_c2 }}</td><td>{{ acc_c2 }}</td><td>{{ f1_c2 }}</td></tr>
-    </table>
-    <div class="explain">
-      <strong>What this means:</strong> Rather than picking one algorithm by assumption, each model
-      was trained with both Random Forest and Gradient Boosting, and the better-performing one
-      (by weighted F1 score, which balances precision and recall) was kept and saved. This
-      side-by-side comparison satisfies the requirement to assess and compare model performance
-      rather than presenting a single unverified choice.
+
+    <!-- Model Details -->
+    <div class="card">
+        <h2>Model Details</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Model</th>
+                    <th>Predicts</th>
+                    <th>Best Algorithm</th>
+                    <th>Test Accuracy</th>
+                    <th>F1 Score</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr>
+                    <td>Model A</td>
+                    <td>Will pursue college (yes/no)</td>
+                    <td>{{ algo_a }}</td>
+                    <td>{{ acc_a }}</td>
+                    <td>{{ f1_a }}</td>
+                </tr>
+
+                <tr>
+                    <td>Model B</td>
+                    <td>SLSU San Juan vs. other campuses</td>
+                    <td>{{ algo_b }}</td>
+                    <td>{{ acc_b }}</td>
+                    <td>{{ f1_b }}</td>
+                </tr>
+
+                <tr>
+                    <td>Model C2</td>
+                    <td>Specific intended degree program</td>
+                    <td>{{ algo_c2 }}</td>
+                    <td>{{ acc_c2 }}</td>
+                    <td>{{ f1_c2 }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="explain">
+            <strong>What this means:</strong>
+            Each model was trained using Random Forest and Gradient
+            Boosting. The better-performing algorithm, based on weighted
+            F1 score, was selected and saved.
+        </div>
     </div>
-  </div>
 
-</body>
-</html>
+</div>
+
+{% endblock %}
+
