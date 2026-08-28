@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Accounts{% endblock %}
+
+{% block content %}
+
+<div class="card">
+
+  <h1 class="headline">Manage Accounts</h1>
+
+  <p>
+    <a href="{% url 'accounts:create_account' %}">
+      + Create New Account
+    </a>
+  </p>
+
+  <table>
+    <tr>
+      <th>Username</th>
+      <th>Email</th>
+      <th>Roles</th>
+      <th>Status</th>
+      <th>Actions</th>
+    </tr>
+
+    {% for u in users %}
+    <tr>
+
+      <td>{{ u.username }}</td>
+
+      <td>{{ u.email }}</td>
+
+      <td>
+        {% for g in u.groups.all %}
+          {{ g.name }}
+          {% if not forloop.last %}, {% endif %}
+        {% endfor %}
+
+        {% if u.is_superuser %}
+          {% if u.groups.all %}
+            ,
+          {% endif %}
+          Superuser
+        {% endif %}
+      </td>
+
+      <td>
+        {% if u.is_active %}
+          Active
+        {% else %}
+          Deactivated
+        {% endif %}
+      </td>
+
+      <td>
+
+        {% if u != request.user %}
+
+          <form
+            method="post"
+            action="{% url 'accounts:toggle_active' u.pk %}"
+            style="display:inline;"
+          >
+            {% csrf_token %}
+
+            <button type="submit">
+              {% if u.is_active %}
+                Deactivate
+              {% else %}
+                Activate
+              {% endif %}
+            </button>
+          </form>
+
+          <a href="{% url 'accounts:delete_account' u.pk %}">
+            Delete
+          </a>
+
+        {% else %}
+
+          <strong>(you)</strong>
+
+        {% endif %}
+
+      </td>
+
+    </tr>
+
+    {% empty %}
+
+    <tr>
+      <td colspan="5">
+        No accounts found.
+      </td>
+    </tr>
+
+    {% endfor %}
+
+  </table>
+
+</div>
+
+{% endblock %}

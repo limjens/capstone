@@ -1,0 +1,63 @@
+```html
+{% extends "base.html" %}
+
+{% block title %}Delete Account{% endblock %}
+
+{% block content %}
+
+<div class="card">
+
+  <h1 class="headline">
+    Delete Account '{{ target_user.username }}'?
+  </h1>
+
+  <div class="explain" style="border-left-color: #C62828;">
+    <strong style="color: #C62828;">
+      This cannot be undone.
+    </strong>
+  </div>
+
+  {% if error %}
+    <div class="explain" style="border-left-color: #C62828;">
+      <strong style="color: #C62828;">
+        {{ error }}
+      </strong>
+    </div>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+
+    <p>
+      <label for="password">
+        Enter your password to confirm:
+      </label>
+    </p>
+
+    <input
+      type="password"
+      id="password"
+      name="password"
+      required
+    >
+
+    <br><br>
+
+    <button
+      type="submit"
+      style="background: #C62828;"
+    >
+      Yes, Delete This Account
+    </button>
+  </form>
+
+  <p>
+    <a href="{% url 'accounts:account_list' %}">
+      Cancel
+    </a>
+  </p>
+
+</div>
+
+{% endblock %}
+```
