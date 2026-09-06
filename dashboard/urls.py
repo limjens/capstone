@@ -5,4 +5,5 @@ app_name = "dashboard"
 
 urlpatterns = [
     path("", views.overview, name="overview"),
+    path("calculate/", views.calculate_predictions, name="calculate"),
 ]

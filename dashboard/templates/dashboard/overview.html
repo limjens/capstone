@@ -82,7 +82,7 @@
         </p>
          <p>Overall program-allocation accuracy: <strong>{{ overall_program_accuracy }}%</strong></p>
 
-        <table>
+                <table>
             <thead>
                 <tr>
                     <th>Program</th>
@@ -106,13 +106,30 @@
                         {% endif %}
                     </td>
                 </tr>
+
                 {% empty %}
                 <tr>
-                    <td colspan="4">No program prediction data available.</td>
+                    <td colspan="4">
+                        No program prediction data available.
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
+
+        <div class="undecided-box">
+            <p>
+                <strong>Expected Undecided Students:</strong>
+                {{ expected_undecided }}
+            </p>
+
+            <p>
+                These students are predicted to pursue college but
+                have not selected a specific preferred degree program.
+                They are not included when estimating sections for
+                individual degree programs.
+            </p>
+        </div>
 
         <div class="explain">
             <strong>What this means:</strong>

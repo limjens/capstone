@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Calculate Predictions</title>
+
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+
+        body {
+
+            margin: 0;
+
+            font-family:
+                Arial,
+                sans-serif;
+
+            background: #f4f6f8;
+
+            color: #222;
+
+        }
+
+
+        .container {
+
+            max-width: 950px;
+
+            margin: 50px auto;
+
+            padding: 20px;
+
+        }
+
+
+        .nav {
+
+            margin-bottom: 20px;
+
+        }
+
+
+        .nav a {
+
+            text-decoration: none;
+
+            color: #1f6f43;
+
+            font-weight: bold;
+
+        }
+
+
+        .card {
+
+            background: white;
+
+            padding: 35px;
+
+            border-radius: 15px;
+
+            box-shadow:
+                0 5px 20px
+                rgba(0, 0, 0, 0.08);
+
+        }
+
+
+        h1 {
+
+            margin-top: 0;
+
+            margin-bottom: 8px;
+
+        }
+
+
+        .description {
+
+            color: #666;
+
+            line-height: 1.6;
+
+            margin-bottom: 30px;
+
+        }
+
+
+        /* =====================================================
+           PROGRESS BAR
+           ===================================================== */
+
+        .progress-container {
+
+            width: 100%;
+
+            height: 14px;
+
+            background: #e5e7eb;
+
+            border-radius: 20px;
+
+            overflow: hidden;
+
+            margin-bottom: 30px;
+
+        }
+
+
+        .progress-bar {
+
+            height: 100%;
+
+            width: 0%;
+
+            background: #1f6f43;
+
+            border-radius: 20px;
+
+            transition:
+                width 0.4s ease;
+
+        }
+
+
+        .progress-text {
+
+            text-align: right;
+
+            font-size: 14px;
+
+            color: #666;
+
+            margin-top: -22px;
+
+            margin-bottom: 25px;
+
+        }
+
+
+        /* =====================================================
+           STATUS
+           ===================================================== */
+
+        .status-box {
+
+            border: 1px solid #ddd;
+
+            border-radius: 12px;
+
+            padding: 20px;
+
+            background: #fafafa;
+
+            min-height: 120px;
+
+        }
+
+
+        .status-title {
+
+            font-size: 18px;
+
+            font-weight: bold;
+
+            margin-bottom: 12px;
+
+        }
+
+
+        .status-message {
+
+            color: #555;
+
+            line-height: 1.5;
+
+        }
+
+
+        /* =====================================================
+           LOG
+           ===================================================== */
+
+        .log-container {
+
+            margin-top: 25px;
+
+            border: 1px solid #ddd;
+
+            border-radius: 12px;
+
+            background: #111;
+
+            color: #ddd;
+
+            height: 280px;
+
+            overflow-y: auto;
+
+            padding: 15px;
+
+            font-family:
+                Consolas,
+                monospace;
+
+            font-size: 13px;
+
+        }
+
+
+        .log-line {
+
+            margin-bottom: 8px;
+
+            line-height: 1.4;
+
+        }
+
+
+        .log-time {
+
+            color: #888;
+
+        }
+
+
+        .log-success {
+
+            color: #8fd694;
+
+        }
+
+
+        .log-error {
+
+            color: #ff8a8a;
+
+        }
+
+
+        .log-info {
+
+            color: #ddd;
+
+        }
+
+
+        /* =====================================================
+           RESULT GRID
+           ===================================================== */
+
+        .results {
+
+            display: none;
+
+            margin-top: 30px;
+
+        }
+
+
+        .results h2 {
+
+            margin-bottom: 20px;
+
+        }
+
+
+        .result-grid {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(2, 1fr);
+
+            gap: 15px;
+
+        }
+
+
+        .result-box {
+
+            background: #f7f8fa;
+
+            border-radius: 10px;
+
+            padding: 20px;
+
+        }
+
+
+        .result-box span {
+
+            display: block;
+
+            color: #666;
+
+            font-size: 14px;
+
+            margin-bottom: 8px;
+
+        }
+
+
+        .result-box strong {
+
+            font-size: 25px;
+
+        }
+
+
+        /* =====================================================
+           BUTTON
+           ===================================================== */
+
+        .calculate-button {
+
+            width: 100%;
+
+            padding: 16px;
+
+            border: none;
+
+            border-radius: 8px;
+
+            background: #1f6f43;
+
+            color: white;
+
+            font-size: 16px;
+
+            font-weight: bold;
+
+            cursor: pointer;
+
+            transition: 0.2s;
+
+            margin-top: 25px;
+
+        }
+
+
+        .calculate-button:hover {
+
+            background: #185a36;
+
+        }
+
+
+        .calculate-button:disabled {
+
+            background: #999;
+
+            cursor: not-allowed;
+
+        }
+
+
+        /* =====================================================
+           COMPLETE
+           ===================================================== */
+
+        .complete-box {
+
+            display: none;
+
+            margin-top: 25px;
+
+            padding: 20px;
+
+            border-radius: 10px;
+
+            background: #e8f5e9;
+
+            color: #216e39;
+
+            font-weight: bold;
+
+        }
+
+
+        /* =====================================================
+           RESPONSIVE
+           ===================================================== */
+
+        @media (max-width: 600px) {
+
+            .container {
+
+                margin: 20px auto;
+
+            }
+
+
+            .card {
+
+                padding: 25px;
+
+            }
+
+
+            .result-grid {
+
+                grid-template-columns: 1fr;
+
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<div class="container">
+
+
+    <div class="nav">
+
+        <a href="{% url 'dashboard:overview' %}">
+
+            ← Back to Overview
+
+        </a>
+
+    </div>
+
+
+    <div class="card">
+
+
+        <h1>
+
+            Prediction Calculator
+
+        </h1>
+
+
+        <p class="description">
+
+            This page performs the enrollment prediction
+            calculations and saves the results for the
+            dashboard. The progress below represents the
+            actual calculation stages being performed by
+            the system.
+
+        </p>
+
+
+        <!-- =================================================
+             PROGRESS
+             ================================================= -->
+
+        <div class="progress-container">
+
+            <div
+                class="progress-bar"
+                id="progressBar"
+            ></div>
+
+        </div>
+
+
+        <div
+            class="progress-text"
+            id="progressText"
+        >
+
+            0%
+
+        </div>
+
+
+        <!-- =================================================
+             CURRENT STATUS
+             ================================================= -->
+
+        <div class="status-box">
+
+            <div
+                class="status-title"
+                id="statusTitle"
+            >
+
+                Ready
+
+            </div>
+
+
+            <div
+                class="status-message"
+                id="statusMessage"
+            >
+
+                Click "Calculate Predictions" to begin.
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             LIVE LOG
+             ================================================= -->
+
+        <div
+            class="log-container"
+            id="logContainer"
+        >
+
+            <div class="log-line log-info">
+
+                System ready.
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             RESULTS
+             ================================================= -->
+
+        <div
+            class="results"
+            id="results"
+        >
+
+            <h2>
+
+                Calculation Results
+
+            </h2>
+
+
+            <div class="result-grid">
+
+
+                <div class="result-box">
+
+                    <span>
+                        Expected Headcount
+                    </span>
+
+                    <strong id="resultExpected">
+                        -
+                    </strong>
+
+                </div>
+
+
+                <div class="result-box">
+
+                    <span>
+                        Actual Headcount
+                    </span>
+
+                    <strong id="resultActual">
+                        -
+                    </strong>
+
+                </div>
+
+
+                <div class="result-box">
+
+                    <span>
+                        Pursuing College
+                    </span>
+
+                    <strong id="resultPursue">
+                        -
+                    </strong>
+
+                </div>
+
+
+                <div class="result-box">
+
+                    <span>
+                        Headcount Accuracy
+                    </span>
+
+                    <strong id="resultHeadcountAccuracy">
+                        -
+                    </strong>
+
+                </div>
+
+
+                <div class="result-box">
+
+                    <span>
+                        Program Accuracy
+                    </span>
+
+                    <strong id="resultProgramAccuracy">
+                        -
+                    </strong>
+
+                </div>
+
+
+                <div class="result-box">
+
+                    <span>
+                        Expected Undecided
+                    </span>
+
+                    <strong id="resultUndecided">
+                        -
+                    </strong>
+
+                </div>
+
+
+                <div class="result-box">
+
+                    <span>
+                        Top Program
+                    </span>
+
+                    <strong id="resultTopProgram">
+                        -
+                    </strong>
+
+                </div>
+
+
+                <div class="result-box">
+
+                    <span>
+                        Top Barrier
+                    </span>
+
+                    <strong id="resultTopBarrier">
+                        -
+                    </strong>
+
+                </div>
+
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             COMPLETE MESSAGE
+             ================================================= -->
+
+        <div
+            class="complete-box"
+            id="completeBox"
+        >
+
+            ✓ Calculation completed successfully.
+            The results have been saved and are now
+            available on the Overview page.
+
+        </div>
+
+
+        <!-- =================================================
+             BUTTON
+             ================================================= -->
+
+        <form
+            method="POST"
+            id="calculationForm"
+        >
+
+            {% csrf_token %}
+
+            <button
+                type="submit"
+                class="calculate-button"
+                id="calculateButton"
+            >
+
+                Calculate Predictions
+
+            </button>
+
+        </form>
+
+
+    </div>
+
+</div>
+
+
+<script>
+
+
+const form =
+    document.getElementById(
+        "calculationForm"
+    );
+
+
+const button =
+    document.getElementById(
+        "calculateButton"
+    );
+
+
+const progressBar =
+    document.getElementById(
+        "progressBar"
+    );
+
+
+const progressText =
+    document.getElementById(
+        "progressText"
+    );
+
+
+const statusTitle =
+    document.getElementById(
+        "statusTitle"
+    );
+
+
+const statusMessage =
+    document.getElementById(
+        "statusMessage"
+    );
+
+
+const logContainer =
+    document.getElementById(
+        "logContainer"
+    );
+
+
+const results =
+    document.getElementById(
+        "results"
+    );
+
+
+const completeBox =
+    document.getElementById(
+        "completeBox"
+    );
+
+
+/* ============================================================
+   ADD LOG MESSAGE
+   ============================================================ */
+
+function addLog(
+    message,
+    type = "info"
+) {
+
+    const line =
+        document.createElement(
+            "div"
+        );
+
+    line.className =
+        "log-line log-" + type;
+
+
+    const now =
+        new Date();
+
+
+    const time =
+        now.toLocaleTimeString();
+
+
+    line.innerHTML =
+        `<span class="log-time">[${time}]</span> ${message}`;
+
+
+    logContainer.appendChild(
+        line
+    );
+
+
+    logContainer.scrollTop =
+        logContainer.scrollHeight;
+
+}
+
+
+/* ============================================================
+   UPDATE STATUS
+   ============================================================ */
+
+function updateStatus(data) {
+
+    progressBar.style.width =
+        data.progress + "%";
+
+
+    progressText.textContent =
+        data.progress + "%";
+
+
+    statusTitle.textContent =
+        data.stage.toUpperCase();
+
+
+    statusMessage.textContent =
+        data.message;
+
+
+    addLog(
+        data.message,
+        data.status === "error"
+            ? "error"
+            : "info"
+    );
+
+}
+
+
+/* ============================================================
+   DISPLAY RESULT
+   ============================================================ */
+
+function displayResult(result) {
+
+    if (!result) {
+        return;
+    }
+
+
+    if (
+        result.expected_headcount
+        !== undefined
+    ) {
+
+        document.getElementById(
+            "resultExpected"
+        ).textContent =
+            result.expected_headcount;
+
+    }
+
+
+    if (
+        result.actual_headcount
+        !== undefined
+    ) {
+
+        document.getElementById(
+            "resultActual"
+        ).textContent =
+            result.actual_headcount;
+
+    }
+
+
+    if (
+        result.pursue_rate
+        !== undefined
+    ) {
+
+        document.getElementById(
+            "resultPursue"
+        ).textContent =
+            result.pursue_rate + "%";
+
+    }
+
+
+    if (
+        result.headcount_accuracy
+        !== undefined
+    ) {
+
+        document.getElementById(
+            "resultHeadcountAccuracy"
+        ).textContent =
+            result.headcount_accuracy !== null
+                ? result.headcount_accuracy + "%"
+                : "N/A";
+
+    }
+
+
+    if (
+        result.program_accuracy
+        !== undefined
+    ) {
+
+        document.getElementById(
+            "resultProgramAccuracy"
+        ).textContent =
+            result.program_accuracy !== null
+                ? result.program_accuracy + "%"
+                : "N/A";
+
+    }
+
+
+    if (
+        result.expected_undecided
+        !== undefined
+    ) {
+
+        document.getElementById(
+            "resultUndecided"
+        ).textContent =
+            result.expected_undecided;
+
+    }
+
+
+    if (
+        result.top_program
+        !== undefined
+    ) {
+
+        document.getElementById(
+            "resultTopProgram"
+        ).textContent =
+            result.top_program;
+
+    }
+
+
+    if (
+        result.top_barrier
+        !== undefined
+    ) {
+
+        document.getElementById(
+            "resultTopBarrier"
+        ).textContent =
+            result.top_barrier;
+
+    }
+
+
+    results.style.display =
+        "block";
+
+}
+
+
+/* ============================================================
+   READ STREAM
+   ============================================================ */
+
+async function readCalculationStream(
+    response
+) {
+
+    const reader =
+        response.body.getReader();
+
+
+    const decoder =
+        new TextDecoder();
+
+
+    let buffer = "";
+
+
+    while (true) {
+
+        const {
+            value,
+            done
+        } =
+            await reader.read();
+
+
+        if (done) {
+            break;
+        }
+
+
+        buffer +=
+            decoder.decode(
+                value,
+                {
+                    stream: true
+                }
+            );
+
+
+        const lines =
+            buffer.split("\n");
+
+
+        buffer =
+            lines.pop();
+
+
+        for (
+            const line
+            of lines
+        ) {
+
+            if (!line.trim()) {
+                continue;
+            }
+
+
+            try {
+
+                const data =
+                    JSON.parse(
+                        line
+                    );
+
+
+                updateStatus(
+                    data
+                );
+
+
+                if (
+                    data.result
+                ) {
+
+                    displayResult(
+                        data.result
+                    );
+
+                }
+
+
+                if (
+                    data.status
+                    === "complete"
+                ) {
+
+                    progressBar.style.width =
+                        "100%";
+
+                    progressText.textContent =
+                        "100%";
+
+                    statusTitle.textContent =
+                        "COMPLETE";
+
+                    statusMessage.textContent =
+                        "All calculations completed successfully.";
+
+                    completeBox.style.display =
+                        "block";
+
+                    button.disabled =
+                        false;
+
+                    button.textContent =
+                        "Calculate Again";
+
+                }
+
+
+                if (
+                    data.status
+                    === "error"
+                ) {
+
+                    statusTitle.textContent =
+                        "ERROR";
+
+                    statusMessage.textContent =
+                        data.message;
+
+                    button.disabled =
+                        false;
+
+                    button.textContent =
+                        "Try Again";
+
+                }
+
+            }
+            catch (error) {
+
+                console.error(
+                    "Invalid stream data:",
+                    line
+                );
+
+            }
+
+        }
+
+    }
+
+}
+
+
+/* ============================================================
+   FORM SUBMISSION
+   ============================================================ */
+
+form.addEventListener(
+    "submit",
+    async function(event) {
+
+        event.preventDefault();
+
+
+        /* ----------------------------------------------------
+           Reset interface
+           ---------------------------------------------------- */
+
+        button.disabled =
+            true;
+
+        button.textContent =
+            "Calculating...";
+
+
+        progressBar.style.width =
+            "0%";
+
+        progressText.textContent =
+            "0%";
+
+
+        statusTitle.textContent =
+            "STARTING";
+
+
+        statusMessage.textContent =
+            "Starting prediction calculation...";
+
+
+        logContainer.innerHTML =
+            "";
+
+
+        results.style.display =
+            "none";
+
+
+        completeBox.style.display =
+            "none";
+
+
+        addLog(
+            "Starting calculation...",
+            "info"
+        );
+
+
+        /* ----------------------------------------------------
+           Get CSRF token
+           ---------------------------------------------------- */
+
+        const csrfToken =
+            document.querySelector(
+                "[name=csrfmiddlewaretoken]"
+            ).value;
+
+
+        try {
+
+            const response =
+                await fetch(
+                    "",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "X-CSRFToken":
+                                csrfToken,
+
+                            "Accept":
+                                "application/x-ndjson",
+                        },
+
+                        body:
+                            new FormData(
+                                form
+                            ),
+                    }
+                );
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    "Server returned HTTP " +
+                    response.status
+                );
+
+            }
+
+
+            await readCalculationStream(
+                response
+            );
+
+        }
+        catch (error) {
+
+            statusTitle.textContent =
+                "ERROR";
+
+
+            statusMessage.textContent =
+                error.message;
+
+
+            addLog(
+                "Calculation failed: " +
+                error.message,
+                "error"
+            );
+
+
+            button.disabled =
+                false;
+
+
+            button.textContent =
+                "Try Again";
+
+        }
+
+    }
+);
+
+</script>
+
+
+</body>
+
+</html>

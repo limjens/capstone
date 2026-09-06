@@ -97,42 +97,54 @@ def upload_status(request, pk):
 
 @login_required
 @permission_required("dataset.change_datasetupload", raise_exception=True)
-@login_required
-@permission_required("dataset.change_datasetupload", raise_exception=True)
 def review_upload(request, token):
     upload = get_object_or_404(DatasetUpload, approval_token=token)
 
     if not upload.token_is_valid():
-        return render(request, "dataset/review_expired.html", {"upload": upload})
+        return render(
+            request,
+            "dataset/review_expired.html",
+            {"upload": upload},
+        )
 
     verified_key = f"verified_upload_{upload.pk}"
 
+    # Require verification code before showing the records
     if not request.session.get(verified_key):
         error = None
+
         if request.method == "POST":
             entered_code = request.POST.get("verification_code", "").strip()
+
             if entered_code == upload.verification_code:
                 request.session[verified_key] = True
-                return redirect("dataset:review_upload", token=token)
-            else:
-                error = "Incorrect verification code. Check the approval email and try again."
+                return redirect(
+                    "dataset:review_upload",
+                    token=token,
+                )
+
+            error = (
+                "Incorrect verification code. "
+                "Check the approval email and try again."
+            )
+
         return render(
-            request, "dataset/verify_code.html", {"upload": upload, "error": error}
+            request,
+            "dataset/verify_code.html",
+            {
+                "upload": upload,
+                "error": error,
+            },
         )
 
-    clean_records = upload.records.filter(validation_status="clean", decision="pending")
-    flagged_records = upload.records.filter(
-        validation_status="flagged", decision="pending"
+    clean_records = upload.records.filter(
+        validation_status="clean",
+        decision="pending",
     )
 
-    return render(
-        request,
-        "dataset/review_upload.html",
-        {
-            "upload": upload,
-            "clean_records": clean_records,
-            "flagged_records": flagged_records,
-        },
+    flagged_records = upload.records.filter(
+        validation_status="flagged",
+        decision="pending",
     )
 
     return render(
@@ -150,43 +162,116 @@ def review_upload(request, token):
 @permission_required("dataset.change_datasetupload", raise_exception=True)
 @require_POST
 def approve_upload(request, token):
-    upload = get_object_or_404(DatasetUpload, approval_token=token)
-    if not upload.token_is_valid():
-        return render(request, "dataset/review_expired.html", {"upload": upload})
-
-    upload.records.filter(validation_status="clean", decision="pending").update(
-        decision="approved"
+    upload = get_object_or_404(
+        DatasetUpload,
+        approval_token=token,
     )
 
-    approved_flagged_ids = request.POST.getlist("approve_flagged")
+    if not upload.token_is_valid():
+        return render(
+            request,
+            "dataset/review_expired.html",
+            {"upload": upload},
+        )
+
+    # ---------------------------------------------------------
+    # 1. Approve all clean records
+    # ---------------------------------------------------------
     upload.records.filter(
-        id__in=approved_flagged_ids, validation_status="flagged"
+        validation_status="clean",
+        decision="pending",
     ).update(decision="approved")
-    upload.records.filter(validation_status="flagged", decision="pending").exclude(
+
+    # ---------------------------------------------------------
+    # 2. Handle flagged records
+    # ---------------------------------------------------------
+    approved_flagged_ids = request.POST.getlist("approve_flagged")
+
+    upload.records.filter(
+        id__in=approved_flagged_ids,
+        validation_status="flagged",
+    ).update(decision="approved")
+
+    upload.records.filter(
+        validation_status="flagged",
+        decision="pending",
+    ).exclude(
         id__in=approved_flagged_ids
     ).update(decision="rejected")
 
+    # ---------------------------------------------------------
+    # 3. APPEND approved records to EnrollmentRecord
+    # ---------------------------------------------------------
+    #
+    # IMPORTANT:
+    # We DO NOT delete existing EnrollmentRecord objects.
+    #
+    # Example:
+    #
+    # Existing dataset:
+    #     1,198 records
+    #
+    # New approved CSV:
+    #       500 records
+    #
+    # Result:
+    #     1,698 records
+    #
+    # ---------------------------------------------------------
+
+    # Get the fields belonging to EnrollmentRecord.
+    #
+    # source_upload is excluded because we set it explicitly
+    # below. This prevents source_upload from being passed twice.
     field_names = [
         f.name
         for f in EnrollmentRecord._meta.get_fields()
-        if f.concrete and not f.auto_created
+        if (f.concrete and not f.auto_created and f.name != "source_upload")
     ]
+
+    approved_records = upload.records.filter(decision="approved")
+
+    added_count = 0
+
     with transaction.atomic():
-        for record in upload.records.filter(decision="approved"):
+        for record in approved_records:
+
+            record_data = {
+                field_name: getattr(record, field_name)
+                for field_name in field_names
+                if hasattr(record, field_name)
+            }
+
+            # CREATE a new EnrollmentRecord.
+            #
+            # This APPENDS the record to the existing dataset.
+            # Nothing previously stored in EnrollmentRecord is deleted.
             EnrollmentRecord.objects.create(
                 source_upload=upload,
-                **{f: getattr(record, f) for f in field_names if hasattr(record, f)},
+                **record_data,
             )
 
+            added_count += 1
+
+    # ---------------------------------------------------------
+    # 4. Mark upload as approved
+    # ---------------------------------------------------------
     upload.status = "approved"
     upload.reviewed_by = request.user
     upload.reviewed_at = timezone.now()
     upload.save()
 
     messages.success(
-        request, f"Upload #{upload.pk} approved and promoted to the training dataset."
+        request,
+        f"Upload #{upload.pk} approved. "
+        f"{added_count} records were added to the training dataset. "
+        f"Existing records were kept.",
     )
-    return redirect("dataset:upload_status", pk=upload.pk)
+
+    return redirect(
+        "dataset:upload_status",
+        pk=upload.pk,
+    )
 
 
 @login_required
